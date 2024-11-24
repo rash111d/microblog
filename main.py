@@ -1,22 +1,73 @@
-import sqlite3 as sql
+import sqlite3
+from bs4 import BeautifulSoup
+import requests
 
-connection = sql.connect("main.sl3", 5)
-cur = connection.cursor()
-cur.execute('DROP TABLE student')
-cur.execute("CREATE TABLE IF NOT EXISTS student(id INT, first_name TEXT, last_name TEXT, age INT)")
-cur.execute("INSERT INTO student VALUES(1, 'RASHID', 'SHINIBAEV', 10000)")
-cur.execute("INSERT INTO student VALUES(1, 'AMIR', 'GUARD', 20000)")
-cur.execute("INSERT INTO student VALUES(1, 'ALEX', 'BRO', 45465465)")
-cur.execute("INSERT INTO student VALUES(1, 'BATON', 'XLEB', 4125132123)")
-cur.execute("INSERT INTO student VALUES(1, 'MOMO', 'MIROV', 626122)")
+while(True):
+    print("1. Add website")
+    print("2. Find Keyword")
+    print("3. Delete Website")
+    print("4. Exit Website")
+    command = int(input())
+    if(command == 1):
+        print("Please input the name of website with https")
+        url = input()
+        connection = sqlite3.connect('main.sl3')
+        cur = connection.cursor()
+        cur.execute("Create table if not exists website(name text)")
+        cur.execute("insert into website(name) values (?)", (url,))
+        connection.commit()
+        connection.close()
+        print("success!")
 
-cur.execute('SELECT * FROM student')
-res = cur.fetchall()
+    elif(command == 2):
+        print("Please input the name of website with https")
+        url = input()
+        print("Please input the keyword from website")
+        key = input()
+        connection = sqlite3.connect('main.sl3')
+        cur = connection.cursor()
+        cur.execute('select * from website where name = ?', (url,))
+        row = cur.fetchall()
+        if row:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            text = soup.get_text()
+            keyword_count = text.lower().count(key.lower())
+            print("Found " + str(keyword_count) + " keywords.")
+        else:
+            print("No such website is in the Database")
+        connection.commit()
+        connection.close()
 
-print(res)
+    elif(command == 3):
+        print("Please input the name of website with https")
+        url = input()
+        connection = sqlite3.connect('main.sl3')
+        cur = connection.cursor()
+        cur.execute('select * from website where name = ?', (url,))
+        row = cur.fetchall()
+        if row:
+            cur.execute('delete from website where name = ?', (url,))
+            print("Deleted!")
+        else:
+            print("No such website is in the Database")
+        connection.commit()
+        connection.close()
+    else:
+        print("Goodbye!")
+        break
 
-connection.commit()
-connection.close()
+
+
+
+
+
+
+
+
+
+
+
 
 
 
